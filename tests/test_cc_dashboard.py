@@ -530,8 +530,9 @@ class UpdateSettingsFile(unittest.TestCase):
         with open(self.path) as f:
             self.assertEqual(f.read(), '{"model": "opus",}')
 
-    def test_missing_settings_file_is_created(self):
-        self.assertEqual(cw.update_settings_file(self.path, lambda s: cw.with_hook(s, OURS)), "updated")
+    def test_missing_settings_file_is_created_without_a_backup(self):
+        self.assertEqual(cw.update_settings_file(self.path, lambda s: cw.with_hook(s, OURS)), "created")
+        self.assertFalse(os.path.exists(self.path + cw.BACKUP_SUFFIX))
         with open(self.path) as f:
             self.assertEqual(commands(json.load(f)), [OURS])
 

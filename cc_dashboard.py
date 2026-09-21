@@ -397,10 +397,10 @@ def without_hook(settings):
 
 
 def update_settings_file(path, transform):
-    """Apply `transform` to a settings file. Returns "updated", "unchanged" or "invalid".
+    """Apply `transform` to a settings file. Returns "updated", "created", "unchanged" or "invalid".
 
-    The original is copied to <path>.bak-cc-dashboard before any write, a file that is not valid
-    JSON is never touched, and nothing is written when the transform changes nothing.
+    An existing file is copied to <path>.bak-cc-dashboard before any write, a file that is not
+    valid JSON is never touched, and nothing is written when the transform changes nothing.
     """
     try:
         with open(path, encoding="utf-8") as f:
@@ -423,7 +423,7 @@ def update_settings_file(path, transform):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(updated, f, indent=2, ensure_ascii=False)
         f.write("\n")
-    return "updated"
+    return "created" if original is None else "updated"
 
 
 # --- I/O shell: everything below talks to the outside world ---------------------------------
@@ -544,7 +544,9 @@ def configure_hook(install):
             print(f"Add this Notification hook command by hand:\n  {command}", file=sys.stderr)
         return 1
     verb = "added to" if install else "removed from"
-    if outcome == "updated":
+    if outcome == "created":
+        print(f"Banner hook added to a new {path}.")
+    elif outcome == "updated":
         print(f"Banner hook {verb} {path} (previous version saved as {os.path.basename(path)}{BACKUP_SUFFIX}).")
     else:
         print(f"Banner hook already {'present in' if install else 'absent from'} {path}; nothing changed.")
